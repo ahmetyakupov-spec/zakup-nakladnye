@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Закуп 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style id="srv"></style>
+<style>
+  /* режим заставки: без полос прокрутки, курсор прячется, если мышь не двигается */
+  html { scrollbar-width: none; }
+  ::-webkit-scrollbar { display: none; }
+  body.idle, body.idle * { cursor: none !important; }
+  #hint { position: fixed; left: 50%; bottom: 4vh; transform: translateX(-50%); z-index: 10;
+          background: rgba(15,23,42,.85); color: #fff; padding: 14px 26px; border-radius: 14px;
+          font: 600 22px Inter, system-ui, sans-serif; transition: opacity .6s; }
+  #msg { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+         font: 600 18px Inter, system-ui, sans-serif; color: #64748B; background: #F1F5F9; }
+</style>
+</head>
+<body>
+<div id="msg">Загрузка…</div>
+<div id="hint">Нажмите ОК на пульте — табло откроется на весь экран</div>
+<main id="root"></main>
+<script>
+// Версия для телевизора. Ключ доступа — в конце ссылки после «#»: он не хранится в этом файле
+// и не уходит на GitHub. Телевизор запоминает ключ, поэтому потом хватит адреса без него.
+var EXEC = 'https://script.google.com/macros/s/AKfycbwFg8OT1UW5CZMFJp1N7YxSJsM6aobQ9x6cMPxCYs8jZ-87DLe2WT-HRwCwGBEUZxK6oA/exec';
+var KEY = (location.hash || '').replace(/^#/, '');
+try { if (KEY) localStorage.setItem('zakupKey', KEY); else KEY = localStorage.getItem('zakupKey') || ''; } catch (e) {}
+var URL_ = EXEC + '?view=' + encodeURIComponent(KEY);
+if (!KEY) document.getElementById('msg').textContent = 'В ссылке нет ключа доступа (части после «#»)';
+var VER = null, last = 0, busy = false;
+var root = document.getElementById('root');
+
+function get(fmt) {
+  return fetch(URL_ + '&format=' + fmt + '&t=' + Date.now()).then(function (r) { return r.json(); });
+}
+
+// Таблица растягивается под ширину экрана телевизора (до 3 раз), чтобы читалась издалека
+function fit() {
+  root.style.zoom = 1;
+  var w = root.offsetWidth;
+  if (w) root.style.zoom = Math.max(1, Math.min(3, (window.innerWidth * 0.95) / w));
+  var t = document.querySelector('.top');
+  if (t) document.documentElement.style.setProperty('--h', t.offsetHeight + 'px');
+}
+
+function load() {
+  busy = true;
+  return get('json').then(function (d) {
+    document.getElementById('srv').textContent = d.css;
+    root.innerHTML = d.html;
+    document.getElementById('msg').style.display = 'none';
+    VER = d.ver; last = Date.now();
+    fit();
+  }).catch(function () {
+    if (!VER) document.getElementById('msg').textContent = 'Нет связи с таблицей, повторяю…';
+  }).then(function () { busy = false; });
+}
+
+// Каждые 5 секунд: появилась ли новая накладная; раз в 2 минуты — полное обновление
+setInterval(function () {
+  if (busy) return;
+  if (!VER || Date.now() - last > 120000) { load(); return; }
+  get('ver').then(function (d) { if (d.ver !== VER) load(); }).catch(function () {});
+}, 5000);
+
+window.addEventListener('resize', fit);
+if (KEY) load();
+
+// Полный экран: браузер телевизора разрешает его только после нажатия кнопки
+function full() {
+  var el = document.documentElement, f = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (f && !(document.fullscreenElement || document.webkitFullscreenElement)) { try { f.call(el); } catch (e) {} }
+  hideHint();
+}
+function hideHint() { var h = document.getElementById('hint'); if (h) h.style.opacity = 0; }
+document.addEventListener('keydown', full);
+document.addEventListener('click', full);
+setTimeout(hideHint, 15000);
+
+// Если таблица не помещается на экран — медленно прокручивается вниз и обратно
+var phase = 'top', since = Date.now(), y = 0;
+function tick() {
+  var max = document.documentElement.scrollHeight - window.innerHeight;
+  var now = Date.now();
+  if (max <= 5) { phase = 'top'; since = now; y = 0; }
+  else if (phase === 'top' && now - since > 10000) { phase = 'down'; y = window.scrollY; }
+  else if (phase === 'down') {
+    y += 0.6; window.scrollTo(0, y);
+    if (y >= max) { phase = 'bottom'; since = now; }
+  } else if (phase === 'bottom' && now - since > 10000) {
+    window.scrollTo({ top: 0, behavior: 'smooth' }); phase = 'top'; since = now;
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+// Экран не гаснет, пока табло открыто (Chrome / Edge)
+function wake() {
+  try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(function () {}); } catch (e) {}
+}
+wake();
+document.addEventListener('visibilitychange', function () { if (!document.hidden) wake(); });
+
+// Курсор исчезает через 3 секунды без движения мыши
+var idleT;
+document.addEventListener('mousemove', function () {
+  document.body.classList.remove('idle');
+  clearTimeout(idleT);
+  idleT = setTimeout(function () { document.body.classList.add('idle'); }, 3000);
+});
+idleT = setTimeout(function () { document.body.classList.add('idle'); }, 3000);
+</script>
+</body>
+</html>
