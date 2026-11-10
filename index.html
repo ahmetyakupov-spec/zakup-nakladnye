@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Накладная З-2</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="style.css?v=3">
+</head>
+<body>
+
+<!-- Шаг 1: фото -->
+<section id="screen-photos" class="screen active">
+  <h1>Накладная на отпуск запасов</h1>
+  <p class="hint">Форма З-2. Снимите документ ровно, при хорошем свете, чтобы были видны все края.
+    Если накладная на нескольких листах — добавьте каждую страницу.</p>
+  <div id="thumbs" class="thumbs"></div>
+  <label class="btn btn-secondary" for="file-camera">📷 Сфотографировать</label>
+  <input id="file-camera" type="file" accept="image/*" capture="environment" hidden>
+  <label class="btn btn-secondary" for="file-gallery">🖼 Выбрать из галереи</label>
+  <input id="file-gallery" type="file" accept="image/*" multiple hidden>
+  <button id="btn-recognize" class="btn" disabled>Распознать</button>
+  <button class="btn btn-link btn-sheet">Открыть таблицу</button>
+</section>
+
+<!-- Шаг 2: ожидание -->
+<section id="screen-loading" class="screen">
+  <div class="spinner"></div>
+  <p class="center">Распознаю накладную…<br><span class="muted">обычно 10–40 секунд</span></p>
+</section>
+
+<!-- Шаг 3: проверка -->
+<section id="screen-review" class="screen">
+  <h1>Проверьте данные</h1>
+  <div id="warnings" class="warnings"></div>
+
+  <div class="card">
+    <div class="grid2">
+      <label>№<input data-f="num" type="number"></label>
+      <label>Дата<input data-f="date" type="date"></label>
+    </div>
+    <label>Поставщик<input data-f="supplier"></label>
+    <label>БИН поставщика<input data-f="bin" inputmode="numeric" maxlength="12"></label>
+  </div>
+
+  <h3 class="section-title">Позиции <span id="items-count" class="muted"></span></h3>
+  <div id="items"></div>
+  <button id="btn-add-item" class="btn btn-secondary">+ Добавить строку</button>
+
+  <div class="card totals">
+    <div class="trow"><span>Сумма закупа по строкам</span><b id="t-sum"></b></div>
+    <div class="trow"><span>Сумма НДС по строкам</span><b id="t-vat"></b></div>
+    <div id="t-check" class="small"></div>
+  </div>
+
+  <button id="btn-save" class="btn">Записать в таблицу</button>
+  <button id="btn-back" class="btn btn-secondary">← Переснять</button>
+</section>
+
+<!-- Шаг 4: готово -->
+<section id="screen-done" class="screen">
+  <div class="done-icon">✅</div>
+  <p class="center" id="done-text">Записано в таблицу</p>
+  <button id="btn-next" class="btn">Следующая накладная</button>
+  <button class="btn btn-link btn-sheet">Открыть таблицу</button>
+</section>
+
+<template id="item-tpl">
+  <div class="card item">
+    <div class="item-head">
+      <span class="item-no"></span>
+      <button class="icon-btn item-del" title="Удалить строку">🗑</button>
+    </div>
+    <label>Наименование, характеристика<textarea data-i="name" rows="2"></textarea></label>
+    <div class="grid3">
+      <label>Кол-во<input data-i="qty" type="number" step="any" inputmode="decimal"></label>
+      <label>Сумма закупа<input data-i="sum_with_vat" type="number" step="any" inputmode="decimal"></label>
+      <label>Сумма НДС<input data-i="vat_sum" type="number" step="any" inputmode="decimal"></label>
+    </div>
+  </div>
+</template>
+
+<script src="config.js?v=3"></script>
+<script src="app.js?v=3"></script>
+</body>
+</html>
