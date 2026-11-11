@@ -116,6 +116,7 @@ function getVal(el, key) {
   const v = el.value.trim();
   if (!v) return null;
   if (NUM.has(key)) { const n = parseFloat(v.replace(",", ".")); return isNaN(n) ? null : n; }
+  if (key === "doc_num") return v.replace(/\s+/g, "").replace(/^0+(?=.)/, ""); // «00000123» → «123»
   return v;
 }
 
@@ -218,7 +219,7 @@ async function demoApi(action) {
   await new Promise((r) => setTimeout(r, 600));
   if (action === "recognize") {
     return { ok: true, next_num: 101, data: {
-      date: "2026-10-27", supplier: "ИП ColorEast", bin: "940119300082",
+      doc_num: "123", date: "2026-10-27", supplier: "ИП ColorEast", bin: "940119300082",
       items: [
         { name: "ПУ изолирующий грунт 25 кг / ID4330KXW", qty: 25, sum_with_vat: 65250, vat_sum: 9000 },
         { name: "Отвердитель для пу грунтов 10 кг/ IGH822", qty: 10, sum_with_vat: 35100, vat_sum: 4841.38 },
