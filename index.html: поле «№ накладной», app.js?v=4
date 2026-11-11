@@ -40,7 +40,10 @@
       <label>Дата<input data-f="date" type="date"></label>
     </div>
     <label>Поставщик<input data-f="supplier"></label>
-    <label>БИН поставщика<input data-f="bin" inputmode="numeric" maxlength="12"></label>
+    <div class="grid2">
+      <label>БИН поставщика<input data-f="bin" inputmode="numeric" maxlength="12"></label>
+      <label>№ накладной<input data-f="doc_num" inputmode="numeric"></label>
+    </div>
   </div>
 
   <h3 class="section-title">Позиции <span id="items-count" class="muted"></span></h3>
@@ -81,6 +84,6 @@
 </template>
 
 <script src="config.js?v=3"></script>
-<script src="app.js?v=3"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>
